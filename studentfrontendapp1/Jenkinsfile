@@ -1,0 +1,96 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('git checkout') {
+            steps {
+                git branch: 'patch-1', url: 'https://github.com/ShivaPVuppala/StudentPortalProject.git'
+            }
+        }
+        stage('build'){
+            steps {
+                bat 'dir'
+                bat 'zip -r smfrontui.zip studentfrontendapp1'
+                bat 'dir'
+            }
+        }
+        stage('deploy to artifactory') {
+            steps {
+                rtUpload (
+					serverId: 'artifactory',
+					spec: '''{
+						  "files": [
+							{
+							  "pattern": "smfrontui.zip",
+							  "target": "npm-local/com/ui/test/"
+							}
+						 ]
+					}''')
+				}
+								
+		}
+		stage('build docker image'){
+			//Create dockerfile and build using "docker build -t spUI ."
+			steps {
+                script {
+                    // Download the UI ZIP file from Artifactory
+                    def server = Artifactory.server('artifactory') // Use your Artifactory server ID
+                    def zipFileName = 'smfrontui.zip'
+                    def downloadPath = 'D:\\Downloads\\smFrontEnd' // Set your local download path
+
+                    server.download spec: """{
+                        "files": [
+                            {
+                                "pattern": "npm-local/com/ui/test/${zipFileName}",
+                                "target": "${downloadPath}/"
+                            }
+                        ]
+                    }"""
+                    
+                    def githubRepoUrl = 'https://raw.githubusercontent.com/ShivaPVuppala/StudentPortalProject/patch-1/studentfrontendapp1/Dockerfile'
+                    def dockerfilePath = "${downloadPath}\\Dockerfile"
+                    bat "curl ${githubRepoUrl} -o ${dockerfilePath}"
+
+                    // Build Docker image
+                    def dockerImageName = 'smfrontui-image'
+                    def dockerTagName = 'latest'
+                    def dockerImageFullName = "${dockerImageName}:${dockerTagName}"
+
+                    bat "docker build -t ${dockerImageFullName} ${downloadPath}"
+                }
+            }
+			
+		}
+		stage('docker push'){
+			   steps {
+			      script {
+				      def dockerImageName = 'smfrontui-image'
+					  def dockerTagName = 'latest'
+				      def dockerImageFullName = "${dockerImageName}:${dockerTagName}"
+					  
+					  bat "docker login -u shiva3021 -p dckr_pat_LNb28VupU4jFKyJTySUd8If4XQ4"
+
+					  bat "docker tag ${dockerImageFullName} shiva3021/${dockerImageFullName}"
+					  
+					  bat "docker push shiva3021/${dockerImageFullName}"
+
+				}
+			   
+		    }
+			
+			
+	    }
+	    stage('Run docker with port 3030'){
+			    //run image using "docker run -p 8060:8060 spUI"
+			steps{
+				script {
+				    bat "docker run -p 3030:3030 -d shiva3021/smfrontui-image:latest"
+				   
+				 }
+				
+			}	
+				
+		}
+		
+	}
+}
