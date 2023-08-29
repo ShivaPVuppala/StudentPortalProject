@@ -2,11 +2,6 @@ pipeline {
     agent any
 
     stages {
-        stage('git checkout') {
-            steps {
-                git branch: 'patch-1', url: 'https://github.com/ShivaPVuppala/StudentPortalProject.git'
-            }
-        }
         stage('build'){
             steps {
                 bat 'dir'
