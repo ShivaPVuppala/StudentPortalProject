@@ -42,16 +42,16 @@ pipeline {
                         ]
                     }"""
                     
-                    def githubRepoUrl = 'https://raw.githubusercontent.com/ShivaPVuppala/StudentPortalProject/patch-1/studentfrontendapp1/Dockerfile'
-                    def dockerfilePath = "${downloadPath}\\Dockerfile"
-                    bat "curl ${githubRepoUrl} -o ${dockerfilePath}"
+                    //def githubRepoUrl = 'https://raw.githubusercontent.com/ShivaPVuppala/StudentPortalProject/patch-1/studentfrontendapp1/Dockerfile'
+                   // def dockerfilePath = "${downloadPath}\\Dockerfile"
+                   // bat "curl ${githubRepoUrl} -o ${dockerfilePath}"
 
                     // Build Docker image
                     def dockerImageName = 'smfrontui-image'
                     def dockerTagName = 'latest'
                     def dockerImageFullName = "${dockerImageName}:${dockerTagName}"
 
-                    bat "docker build -t ${dockerImageFullName} ${downloadPath}"
+                    bat "docker build -t ${dockerImageFullName} ./studentfrontendapp1/Dockerfile"
                 }
             }
 			
