@@ -50,10 +50,7 @@ pipeline {
                     def dockerImageName = 'smfrontui-image'
                     def dockerTagName = 'latest'
                     def dockerImageFullName = "${dockerImageName}:${dockerTagName}"
- 		    bat 'dir'
-		    bat 'cd studentfrontendapp1'
-		    bat 'dir'
-                    bat "docker build -t ${dockerImageFullName} ./studentfrontendapp1/Dockerfile"
+                    bat "docker build -t ${dockerImageFullName} ."
                 }
             }
 			
